@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{388CA819-1400-4755-B039-314F446C3000}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CommonServiceTools</RootNamespace>
+    <AssemblyName>CommonServiceTools</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Cassandra">
+      <HintPath>..\..\..\..\..\..\JGIT_0x5ADC\5GL\5GL\lib\3rdparty\DataStax-Cassandra 3.2.0.0\Cassandra.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\gen-csharp\pizzabaker\EPizzaBaker.cs">
+      <Link>gen-csharp\PizzaBaker\EPizzaBaker.cs</Link>
+    </Compile>
+    <Compile Include="..\gen-csharp\pizzabaker\PizzaBaker.cs">
+      <Link>gen-csharp\PizzaBaker\PizzaBaker.cs</Link>
+    </Compile>
+    <Compile Include="..\gen-csharp\pizzeria\Dish.cs">
+      <Link>gen-csharp\Pizzeria\Dish.cs</Link>
+    </Compile>
+    <Compile Include="..\gen-csharp\pizzeria\EPizzeria.cs">
+      <Link>gen-csharp\Pizzeria\EPizzeria.cs</Link>
+    </Compile>
+    <Compile Include="..\gen-csharp\pizzeria\Order.cs">
+      <Link>gen-csharp\Pizzeria\Order.cs</Link>
+    </Compile>
+    <Compile Include="..\gen-csharp\pizzeria\OrderPosition.cs">
+      <Link>gen-csharp\Pizzeria\OrderPosition.cs</Link>
+    </Compile>
+    <Compile Include="..\gen-csharp\pizzeria\Pizzeria.cs">
+      <Link>gen-csharp\Pizzeria\Pizzeria.cs</Link>
+    </Compile>
+    <Compile Include="..\gen-csharp\Pizzeria\PizzeriaCallback.cs">
+      <Link>gen-csharp\Pizzeria\PizzeriaCallback.cs</Link>
+    </Compile>
+    <Compile Include="CassandraTools.cs" />
+    <Compile Include="PizzaConfig.cs" />
+    <Compile Include="ThriftClients\BaseClient.cs" />
+    <Compile Include="ThriftClients\PizzaBakerClient.cs" />
+    <Compile Include="ThriftClients\PizzeriaCallbackClient.cs" />
+    <Compile Include="ThriftClients\PizzeriaClient.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\Thrift\wc-XE-all\wc-JensG-haxe\lib\csharp\src\Thrift.45.csproj">
+      <Project>{ebce35da-cf6a-42bc-a357-a9c09b534299}</Project>
+      <Name>Thrift.45</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Hosts.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
