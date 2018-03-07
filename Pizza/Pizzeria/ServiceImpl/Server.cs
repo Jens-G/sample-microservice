@@ -36,13 +36,20 @@ namespace Pizzeria.ServiceImpl
             PizzeriaCallback.Processor callback = new PizzeriaCallback.Processor(handler);
             multiplexProcessor.RegisterProcessor(typeof(PizzeriaCallback).Name, callback);
 
+            // create handler/processor for the diagnostics service
+            // handler = same 
+            Diagnostics.Diagnostics.Processor diagnose = new Diagnostics.Diagnostics.Processor(handler);
+            multiplexProcessor.RegisterProcessor(typeof(Diagnostics.Diagnostics).Name, diagnose);
+
             // more processors as needed ...
 
             // complete internal setup
             Console.Title = Environment.MachineName + "-" + port.ToString();
 
             // return the server instance
+            //var server = new TThreadPoolServer(multiplexProcessor, serverTransport, transportFactory, protocolFactory);
             var server = new TThreadedServer(multiplexProcessor, serverTransport, transportFactory, protocolFactory);
+            //var server = new TSimpleServer(multiplexProcessor, serverTransport, transportFactory, protocolFactory);
             server.Serve();
         }
     }

@@ -1,44 +1,45 @@
-﻿using System;
+﻿using CommonServiceTools;
+using Pizzeria;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Thrift.Protocol;
 using Thrift.Server;
 using Thrift.Transport;
+using ThriftClients;
 
 namespace PizzaBaker.ServiceImpl
 {
     class Server
     {
-        static internal void Run(int port)
+        static Handler handler = new Handler();
+
+        internal static void Run()
         {
-            // check whether the port is free
-            TServerTransport serverTransport = new TServerSocket(port);
-            serverTransport.Listen();
-            serverTransport.Close();
-            serverTransport = new TServerSocket(port);
-            
-            // one processor to rule them all
-            var multiplexProcessor = new TMultiplexedProcessor();
+            Console.Title = Environment.MachineName + "-" + handler.GetID();
 
-            // create protocol factory, default to "framed binary"
-            TProtocolFactory protocolFactory = new TBinaryProtocol.Factory(true, true);
-            TTransportFactory transportFactory = new TFramedTransport.Factory();
+            while (true)
+            {
+                try
+                {
+                    Thread.Sleep(100);
+                    using (var client = new ThriftClients.PizzeriaCallbackClient(PizzaConfig.Hosts.Pizzeria, PizzaConfig.Ports.Pizzeria))
+                    {
+                        while (handler.MakeOnePizza(client))
+                            /* one more! */;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    Thread.Sleep(1000); // no connection? be patient!
+                }
 
-            // create handler/processor for the baker service
-            Handler handler = new Handler();
-            PizzaBaker.Processor PizzaBaker = new PizzaBaker.Processor(handler);
-            multiplexProcessor.RegisterProcessor(typeof(PizzaBaker).Name, PizzaBaker);
-            
-            // more processors as needed ...
-
-            // complete internal setup
-            Console.Title = Environment.MachineName + "-" + port.ToString();
-
-            // return the server instance
-            var server = new TThreadedServer(multiplexProcessor, serverTransport, transportFactory, protocolFactory);
-            server.Serve();
+            }
         }
+
     }
 }

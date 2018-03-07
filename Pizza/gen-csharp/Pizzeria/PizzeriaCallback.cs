@@ -19,10 +19,15 @@ namespace Pizzeria
 {
   public partial class PizzeriaCallback {
     public interface ISync {
+      WorkItem GetSomeWork(string BakerID);
       void MealPrepared(string OrderID, string DishID, int Quantity, string BakerID);
     }
 
     public interface Iface : ISync {
+      #if SILVERLIGHT
+      IAsyncResult Begin_GetSomeWork(AsyncCallback callback, object state, string BakerID);
+      WorkItem End_GetSomeWork(IAsyncResult asyncResult);
+      #endif
       #if SILVERLIGHT
       IAsyncResult Begin_MealPrepared(AsyncCallback callback, object state, string OrderID, string DishID, int Quantity, string BakerID);
       void End_MealPrepared(IAsyncResult asyncResult);
@@ -84,6 +89,71 @@ namespace Pizzeria
       }
       #endregion
 
+
+      
+      #if SILVERLIGHT
+      public IAsyncResult Begin_GetSomeWork(AsyncCallback callback, object state, string BakerID)
+      {
+        return send_GetSomeWork(callback, state, BakerID);
+      }
+
+      public WorkItem End_GetSomeWork(IAsyncResult asyncResult)
+      {
+        oprot_.Transport.EndFlush(asyncResult);
+        return recv_GetSomeWork();
+      }
+
+      #endif
+
+      public WorkItem GetSomeWork(string BakerID)
+      {
+        #if !SILVERLIGHT
+        send_GetSomeWork(BakerID);
+        return recv_GetSomeWork();
+
+        #else
+        var asyncResult = Begin_GetSomeWork(null, null, BakerID);
+        return End_GetSomeWork(asyncResult);
+
+        #endif
+      }
+      #if SILVERLIGHT
+      public IAsyncResult send_GetSomeWork(AsyncCallback callback, object state, string BakerID)
+      #else
+      public void send_GetSomeWork(string BakerID)
+      #endif
+      {
+        oprot_.WriteMessageBegin(new TMessage("GetSomeWork", TMessageType.Call, seqid_));
+        GetSomeWork_args args = new GetSomeWork_args();
+        args.BakerID = BakerID;
+        args.Write(oprot_);
+        oprot_.WriteMessageEnd();
+        #if SILVERLIGHT
+        return oprot_.Transport.BeginFlush(callback, state);
+        #else
+        oprot_.Transport.Flush();
+        #endif
+      }
+
+      public WorkItem recv_GetSomeWork()
+      {
+        TMessage msg = iprot_.ReadMessageBegin();
+        if (msg.Type == TMessageType.Exception) {
+          TApplicationException x = TApplicationException.Read(iprot_);
+          iprot_.ReadMessageEnd();
+          throw x;
+        }
+        GetSomeWork_result result = new GetSomeWork_result();
+        result.Read(iprot_);
+        iprot_.ReadMessageEnd();
+        if (result.__isset.success) {
+          return result.Success;
+        }
+        if (result.__isset.error) {
+          throw result.Error;
+        }
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "GetSomeWork failed: unknown result");
+      }
 
       
       #if SILVERLIGHT
@@ -155,6 +225,7 @@ namespace Pizzeria
       public Processor(ISync iface)
       {
         iface_ = iface;
+        processMap_["GetSomeWork"] = GetSomeWork_Process;
         processMap_["MealPrepared"] = MealPrepared_Process;
       }
 
@@ -186,6 +257,41 @@ namespace Pizzeria
           return false;
         }
         return true;
+      }
+
+      public void GetSomeWork_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      {
+        GetSomeWork_args args = new GetSomeWork_args();
+        args.Read(iprot);
+        iprot.ReadMessageEnd();
+        GetSomeWork_result result = new GetSomeWork_result();
+        try
+        {
+          try
+          {
+            result.Success = iface_.GetSomeWork(args.BakerID);
+          }
+          catch (EPizzeria error)
+          {
+            result.Error = error;
+          }
+          oprot.WriteMessageBegin(new TMessage("GetSomeWork", TMessageType.Reply, seqid)); 
+          result.Write(oprot);
+        }
+        catch (TTransportException)
+        {
+          throw;
+        }
+        catch (Exception ex)
+        {
+          Console.Error.WriteLine("Error occurred in processor:");
+          Console.Error.WriteLine(ex.ToString());
+          TApplicationException x = new TApplicationException        (TApplicationException.ExceptionType.InternalError," Internal error.");
+          oprot.WriteMessageBegin(new TMessage("GetSomeWork", TMessageType.Exception, seqid));
+          x.Write(oprot);
+        }
+        oprot.WriteMessageEnd();
+        oprot.Transport.Flush();
       }
 
       public void MealPrepared_Process(int seqid, TProtocol iprot, TProtocol oprot)
@@ -221,6 +327,296 @@ namespace Pizzeria
         }
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
+      }
+
+    }
+
+
+    #if !SILVERLIGHT
+    [Serializable]
+    #endif
+    public partial class GetSomeWork_args : TBase
+    {
+      private string _BakerID;
+
+      public string BakerID
+      {
+        get
+        {
+          return _BakerID;
+        }
+        set
+        {
+          __isset.BakerID = true;
+          this._BakerID = value;
+        }
+      }
+
+
+      public Isset __isset;
+      #if !SILVERLIGHT
+      [Serializable]
+      #endif
+      public struct Isset {
+        public bool BakerID;
+      }
+
+      public GetSomeWork_args() {
+      }
+
+      public void Read (TProtocol iprot)
+      {
+        iprot.IncrementRecursionDepth();
+        try
+        {
+          TField field;
+          iprot.ReadStructBegin();
+          while (true)
+          {
+            field = iprot.ReadFieldBegin();
+            if (field.Type == TType.Stop) { 
+              break;
+            }
+            switch (field.ID)
+            {
+              case 1:
+                if (field.Type == TType.String) {
+                  BakerID = iprot.ReadString();
+                } else { 
+                  TProtocolUtil.Skip(iprot, field.Type);
+                }
+                break;
+              default: 
+                TProtocolUtil.Skip(iprot, field.Type);
+                break;
+            }
+            iprot.ReadFieldEnd();
+          }
+          iprot.ReadStructEnd();
+        }
+        finally
+        {
+          iprot.DecrementRecursionDepth();
+        }
+      }
+
+      public void Write(TProtocol oprot) {
+        oprot.IncrementRecursionDepth();
+        try
+        {
+          TStruct struc = new TStruct("GetSomeWork_args");
+          oprot.WriteStructBegin(struc);
+          TField field = new TField();
+          if (BakerID != null && __isset.BakerID) {
+            field.Name = "BakerID";
+            field.Type = TType.String;
+            field.ID = 1;
+            oprot.WriteFieldBegin(field);
+            oprot.WriteString(BakerID);
+            oprot.WriteFieldEnd();
+          }
+          oprot.WriteFieldStop();
+          oprot.WriteStructEnd();
+        }
+        finally
+        {
+          oprot.DecrementRecursionDepth();
+        }
+      }
+
+      public override bool Equals(object that) {
+        var other = that as GetSomeWork_args;
+        if (other == null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return ((__isset.BakerID == other.__isset.BakerID) && ((!__isset.BakerID) || (System.Object.Equals(BakerID, other.BakerID))));
+      }
+
+      public override int GetHashCode() {
+        int hashcode = 0;
+        unchecked {
+          hashcode = (hashcode * 397) ^ (!__isset.BakerID ? 0 : (BakerID.GetHashCode()));
+        }
+        return hashcode;
+      }
+
+      public override string ToString() {
+        StringBuilder __sb = new StringBuilder("GetSomeWork_args(");
+        bool __first = true;
+        if (BakerID != null && __isset.BakerID) {
+          if(!__first) { __sb.Append(", "); }
+          __first = false;
+          __sb.Append("BakerID: ");
+          __sb.Append(BakerID);
+        }
+        __sb.Append(")");
+        return __sb.ToString();
+      }
+
+    }
+
+
+    #if !SILVERLIGHT
+    [Serializable]
+    #endif
+    public partial class GetSomeWork_result : TBase
+    {
+      private WorkItem _success;
+      private EPizzeria _error;
+
+      public WorkItem Success
+      {
+        get
+        {
+          return _success;
+        }
+        set
+        {
+          __isset.success = true;
+          this._success = value;
+        }
+      }
+
+      public EPizzeria Error
+      {
+        get
+        {
+          return _error;
+        }
+        set
+        {
+          __isset.error = true;
+          this._error = value;
+        }
+      }
+
+
+      public Isset __isset;
+      #if !SILVERLIGHT
+      [Serializable]
+      #endif
+      public struct Isset {
+        public bool success;
+        public bool error;
+      }
+
+      public GetSomeWork_result() {
+      }
+
+      public void Read (TProtocol iprot)
+      {
+        iprot.IncrementRecursionDepth();
+        try
+        {
+          TField field;
+          iprot.ReadStructBegin();
+          while (true)
+          {
+            field = iprot.ReadFieldBegin();
+            if (field.Type == TType.Stop) { 
+              break;
+            }
+            switch (field.ID)
+            {
+              case 0:
+                if (field.Type == TType.Struct) {
+                  Success = new WorkItem();
+                  Success.Read(iprot);
+                } else { 
+                  TProtocolUtil.Skip(iprot, field.Type);
+                }
+                break;
+              case 1:
+                if (field.Type == TType.Struct) {
+                  Error = new EPizzeria();
+                  Error.Read(iprot);
+                } else { 
+                  TProtocolUtil.Skip(iprot, field.Type);
+                }
+                break;
+              default: 
+                TProtocolUtil.Skip(iprot, field.Type);
+                break;
+            }
+            iprot.ReadFieldEnd();
+          }
+          iprot.ReadStructEnd();
+        }
+        finally
+        {
+          iprot.DecrementRecursionDepth();
+        }
+      }
+
+      public void Write(TProtocol oprot) {
+        oprot.IncrementRecursionDepth();
+        try
+        {
+          TStruct struc = new TStruct("GetSomeWork_result");
+          oprot.WriteStructBegin(struc);
+          TField field = new TField();
+
+          if (this.__isset.success) {
+            if (Success != null) {
+              field.Name = "Success";
+              field.Type = TType.Struct;
+              field.ID = 0;
+              oprot.WriteFieldBegin(field);
+              Success.Write(oprot);
+              oprot.WriteFieldEnd();
+            }
+          } else if (this.__isset.error) {
+            if (Error != null) {
+              field.Name = "Error";
+              field.Type = TType.Struct;
+              field.ID = 1;
+              oprot.WriteFieldBegin(field);
+              Error.Write(oprot);
+              oprot.WriteFieldEnd();
+            }
+          }
+          oprot.WriteFieldStop();
+          oprot.WriteStructEnd();
+        }
+        finally
+        {
+          oprot.DecrementRecursionDepth();
+        }
+      }
+
+      public override bool Equals(object that) {
+        var other = that as GetSomeWork_result;
+        if (other == null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return ((__isset.success == other.__isset.success) && ((!__isset.success) || (System.Object.Equals(Success, other.Success))))
+          && ((__isset.error == other.__isset.error) && ((!__isset.error) || (System.Object.Equals(Error, other.Error))));
+      }
+
+      public override int GetHashCode() {
+        int hashcode = 0;
+        unchecked {
+          hashcode = (hashcode * 397) ^ (!__isset.success ? 0 : (Success.GetHashCode()));
+          hashcode = (hashcode * 397) ^ (!__isset.error ? 0 : (Error.GetHashCode()));
+        }
+        return hashcode;
+      }
+
+      public override string ToString() {
+        StringBuilder __sb = new StringBuilder("GetSomeWork_result(");
+        bool __first = true;
+        if (Success != null && __isset.success) {
+          if(!__first) { __sb.Append(", "); }
+          __first = false;
+          __sb.Append("Success: ");
+          __sb.Append(Success== null ? "<null>" : Success.ToString());
+        }
+        if (Error != null && __isset.error) {
+          if(!__first) { __sb.Append(", "); }
+          __first = false;
+          __sb.Append("Error: ");
+          __sb.Append(Error== null ? "<null>" : Error.ToString());
+        }
+        __sb.Append(")");
+        return __sb.ToString();
       }
 
     }

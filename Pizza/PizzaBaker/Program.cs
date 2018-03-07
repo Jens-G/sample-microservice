@@ -12,10 +12,8 @@ namespace PizzaBaker
     {
         static void Main(string[] args)
         {
-            var port = args.Length > 0 ? int.Parse(args[0]) : PizzaConfig.Ports.PizzaBaker;
-
-            Console.WriteLine("Up and running on port {0}.", port);
-            Server.Run(port);
+            Console.WriteLine("Up and running.");
+            Server.Run();
         }
     }
 }

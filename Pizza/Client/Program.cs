@@ -19,13 +19,102 @@ namespace Client
         {
             try
             {
-                var server = args.Length > 0 ? args[0] : PizzaConfig.Hosts.Pizzeria;
-                var port = args.Length > 1 ? int.Parse(args[1]) : PizzaConfig.Ports.Pizzeria;
+                string server = "localhost";
+                int port = PizzaConfig.Ports.Pizzeria;
+                int clients = 1;
+                bool perftest = false;
+                bool silent = false;
 
-                using (var client = new ThriftClients.PizzeriaClient(server, port))
+                for (var i = 0; i < args.Length; ++i)
                 {
-                    Run(client.Impl);
+                    int tmp;
+
+                    switch (i)
+                    {
+                        case 0:
+                            server = args[i];
+                            break;
+                        case 1:
+                            if( int.TryParse(args[i], out tmp))
+                                port = tmp;
+                            break;
+                        case 2:
+                            if (int.TryParse(args[i], out tmp))
+                            {
+                                clients = Math.Max(1, Math.Min(128, tmp));
+                                silent = true;
+                            }
+                            break;
+                    }
+
+                    if (string.CompareOrdinal(args[i], "--perftest") == 0)
+                        perftest = true;
                 }
+
+
+                var start = DateTime.Now;
+
+                var threads = new List<Thread>();
+                for (var i = 0; i < clients; ++i)
+                {
+                    var thread = new Thread(() =>
+                    {
+                        try
+                        {
+                            if (perftest)
+                            {
+                                using (var client = new ThriftClients.DiagnosticsClient(server, port, silent))
+                                {
+                                    var x = client.Impl.PerformanceTest(10);
+                                    Console.WriteLine("Performance Test: {0} iterations",x);
+                                }
+                            }
+                            else
+                            {
+                                using (var client = new ThriftClients.PizzeriaClient(server, port, silent))
+                                {
+                                    Run(client.Impl, silent);
+                                }
+                            }
+                        }
+
+                        catch (EPizzeria ce)
+                        {
+                            Console.WriteLine(ce.Message);
+                            Console.WriteLine(ce.Msg);
+                            //Console.WriteLine(ce.StackTrace);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("{0} {1}", e.GetType().Name, e.Message);
+                        }
+                    });
+
+                    thread.Start();
+                    threads.Add(thread);
+                }
+
+                if (silent)
+                    Console.WriteLine("{0} client threads started", clients);
+
+                while (threads.Count > 0)
+                {
+                    foreach (var t in threads)
+                    {
+                        if (silent)
+                            Console.Write("\r{0} client threads still running, {1} seconds so far    ", 
+                                threads.Count, 
+                                0.001 * (DateTime.Now - start).TotalMilliseconds);
+                        if (t.Join(200))
+                        {
+                            threads.Remove(t);
+                            break;
+                        }
+                    }
+                }
+
+                var delta = DateTime.Now - start;
+                Console.WriteLine("\nCompleted after {0} seconds.", 0.001 * delta.TotalMilliseconds);
             }
             catch (EPizzeria ce)
             {
@@ -40,24 +129,25 @@ namespace Client
         }
 
 
-
-
-        private static void Run(Pizzeria.Pizzeria.ISync client)
+        private static void Run(Pizzeria.Pizzeria.ISync client, bool silent)
         {
-            Console.WriteLine("The MENUE\n------------");
-            foreach (var dish in client.GetTheMenue())
-                Console.WriteLine("- {0} {1} nur {2} EUR {3}", dish.ID, dish.Description, dish.Price, dish.Notes);
-            Console.WriteLine();
-
+            if (!silent)
+            {
+                Console.WriteLine("The MENUE\n------------");
+                foreach (var dish in client.GetTheMenue())
+                    Console.WriteLine("- {0} {1} nur {2} EUR {3}", dish.ID, dish.Description, dish.Price, dish.Notes);
+                Console.WriteLine();
+            }
 
             var fatfinger = new Random();
             var positions = new List<OrderPosition>();
             foreach (var dish in client.GetTheMenue())
             {
-                var quantity = fatfinger.Next(20);
+                var quantity = fatfinger.Next(8);
                 if (quantity > 0)
                 {
-                    Console.WriteLine("- ordering {0} of {1} {2}", quantity, dish.ID, dish.Description);
+                    if (!silent)
+                        Console.WriteLine("- ordering {0} of {1} {2}", quantity, dish.ID, dish.Description);
                     positions.Add(new OrderPosition()
                     {
                         DishID = dish.ID,
@@ -65,7 +155,6 @@ namespace Client
                     });
                 }
             }
-            Console.WriteLine();
 
             try
             {
@@ -74,22 +163,30 @@ namespace Client
                     Positions = positions
                 });
 
-                Console.WriteLine("Order {0} placed.", orderID);
+                if (!silent)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("Order {0} placed.", orderID);
+                    Console.Write("Waiting ...");
+                }
 
-                Console.Write("Waiting ...");
-                while (! client.CheckAndDeliver(orderID))
+                while (!client.CheckAndDeliver(orderID))
                 {
                     Thread.Sleep(1200);
-                    Console.Write(".");
+                    if (!silent)
+                        Console.Write(".");
                 }
-                Console.WriteLine(" Cool, my order {0} was finally delivered.", orderID);
 
-                Thread.Sleep(400);
-                Console.WriteLine("Mmmh, delicious!");
+                if (!silent)
+                {
+                    Console.WriteLine(" Cool, my order {0} was finally delivered.", orderID);
+                    Thread.Sleep(400);
+                    Console.WriteLine("Mmmh, delicious!");
+                }
             }
             catch (EPizzeria ep)
             {
-                Console.WriteLine("Server error: "+ep.Msg);
+                Console.WriteLine("Server error: " + ep.Msg);
             }
         }
     }

@@ -44,35 +44,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\gen-csharp\pizzabaker\EPizzaBaker.cs">
+    <Compile Include="..\gen-csharp\diagnostics\*.cs">
+      <Link>gen-csharp\Diagnostics\EDiagnostics.cs</Link>
+    </Compile>
+    <Compile Include="..\gen-csharp\pizzabaker\*.cs">
       <Link>gen-csharp\PizzaBaker\EPizzaBaker.cs</Link>
     </Compile>
-    <Compile Include="..\gen-csharp\pizzabaker\PizzaBaker.cs">
-      <Link>gen-csharp\PizzaBaker\PizzaBaker.cs</Link>
-    </Compile>
-    <Compile Include="..\gen-csharp\pizzeria\Dish.cs">
+    <Compile Include="..\gen-csharp\pizzeria\*.cs">
       <Link>gen-csharp\Pizzeria\Dish.cs</Link>
-    </Compile>
-    <Compile Include="..\gen-csharp\pizzeria\EPizzeria.cs">
-      <Link>gen-csharp\Pizzeria\EPizzeria.cs</Link>
-    </Compile>
-    <Compile Include="..\gen-csharp\pizzeria\Order.cs">
-      <Link>gen-csharp\Pizzeria\Order.cs</Link>
-    </Compile>
-    <Compile Include="..\gen-csharp\pizzeria\OrderPosition.cs">
-      <Link>gen-csharp\Pizzeria\OrderPosition.cs</Link>
-    </Compile>
-    <Compile Include="..\gen-csharp\pizzeria\Pizzeria.cs">
-      <Link>gen-csharp\Pizzeria\Pizzeria.cs</Link>
-    </Compile>
-    <Compile Include="..\gen-csharp\Pizzeria\PizzeriaCallback.cs">
-      <Link>gen-csharp\Pizzeria\PizzeriaCallback.cs</Link>
     </Compile>
     <Compile Include="CassandraTools.cs" />
     <Compile Include="PizzaConfig.cs" />
     <Compile Include="ThriftClients\BaseClient.cs" />
-    <Compile Include="ThriftClients\PizzaBakerClient.cs" />
     <Compile Include="ThriftClients\PizzeriaCallbackClient.cs" />
+    <Compile Include="ThriftClients\DiagnosticsClient.cs" />
     <Compile Include="ThriftClients\PizzeriaClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -1,0 +1,56 @@
+version: "3.3"
+    
+services:
+    cassandra:
+        image: cassandra
+        networks:
+            - connection
+        volumes:
+            - cassandra:/var/lib/cassandra 
+        deploy:
+            placement:
+                constraints: 
+                    - node.labels.pizza == frontend
+        
+    pizzeria:
+        image: pizzeria:v2
+        build: 
+            context: Pizzeria/
+        networks:
+            - connection
+        ports:
+            - "9090:9090"  # check IP with "docker inspect pizza_connection"
+        depends_on:
+            - cassandra
+        deploy:
+            update_config:
+                parallelism: 2
+                delay: 15s
+            resources:
+                limits:
+                    cpus: '0.40'
+            placement:
+                constraints: 
+                    - node.labels.pizza == frontend
+            
+    pizzabaker:
+        image: pizzabaker:v2
+        build: 
+            context: PizzaBaker/
+        networks:
+            - connection
+        depends_on:
+            - pizzeria
+        deploy:
+            mode: replicated
+            replicas: 30
+            placement:
+                constraints: 
+                    - node.labels.pizza == backend
+
+networks:
+    connection:
+        driver: "overlay"
+
+volumes:
+    cassandra:

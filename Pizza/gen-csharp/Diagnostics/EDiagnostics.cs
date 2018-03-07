@@ -15,13 +15,13 @@ using System.Runtime.Serialization;
 using Thrift.Protocol;
 using Thrift.Transport;
 
-namespace PizzaBaker
+namespace Diagnostics
 {
 
   #if !SILVERLIGHT
   [Serializable]
   #endif
-  public partial class EPizzaBaker : TException, TBase
+  public partial class EDiagnostics : TException, TBase
   {
     private string _Msg;
 
@@ -47,7 +47,7 @@ namespace PizzaBaker
       public bool Msg;
     }
 
-    public EPizzaBaker() {
+    public EDiagnostics() {
     }
 
     public void Read (TProtocol iprot)
@@ -90,7 +90,7 @@ namespace PizzaBaker
       oprot.IncrementRecursionDepth();
       try
       {
-        TStruct struc = new TStruct("EPizzaBaker");
+        TStruct struc = new TStruct("EDiagnostics");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (Msg != null && __isset.Msg) {
@@ -111,7 +111,7 @@ namespace PizzaBaker
     }
 
     public override bool Equals(object that) {
-      var other = that as EPizzaBaker;
+      var other = that as EDiagnostics;
       if (other == null) return false;
       if (ReferenceEquals(this, other)) return true;
       return ((__isset.Msg == other.__isset.Msg) && ((!__isset.Msg) || (System.Object.Equals(Msg, other.Msg))));
@@ -126,7 +126,7 @@ namespace PizzaBaker
     }
 
     public override string ToString() {
-      StringBuilder __sb = new StringBuilder("EPizzaBaker(");
+      StringBuilder __sb = new StringBuilder("EDiagnostics(");
       bool __first = true;
       if (Msg != null && __isset.Msg) {
         if(!__first) { __sb.Append(", "); }

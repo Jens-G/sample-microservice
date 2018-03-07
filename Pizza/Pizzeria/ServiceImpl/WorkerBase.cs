@@ -11,14 +11,22 @@ namespace Pizzeria.ServiceImpl
 {
     class WorkerBase
     {
-        protected static ISession Connect()
-        {
-            var session = CassandraTools.Connect(new List<string>() {
-					PizzaConfig.Hosts.Cassandra
-				});
+        protected static ISession g_Session;
 
-            EnsureKeyspaceAndTables(session);
-            return session;
+        protected static ISession Session
+        {
+            get
+            {
+                if (g_Session != null)
+                    return g_Session;
+
+                g_Session = CassandraTools.Connect(new List<string>() {
+                    PizzaConfig.Hosts.Cassandra
+                });
+
+                EnsureKeyspaceAndTables(g_Session);
+                return g_Session;
+            }
         }
 
         private static void EnsureKeyspaceAndTables(ISession session)

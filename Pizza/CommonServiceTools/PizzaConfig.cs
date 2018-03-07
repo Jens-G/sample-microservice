@@ -56,9 +56,9 @@ namespace CommonServiceTools
 
         public static class Hosts
         {
-            public static string Cassandra { get { return GetString("Cassandra.Host", "Cassandra"); } }  //  172.17.0.2
-            public static string Pizzeria { get { return GetString("Pizzeria.Host", "Pizzeria"); } }  //  172.17.0.3
-            public static string PizzaBaker { get { return GetString("PizzaBaker.Host", "PizzaBaker"); } }  //  172.17.0.4
+            public static string Cassandra { get { return GetString("Cassandra.Host", "Cassandra"); } }
+            public static string Pizzeria { get { return GetString("Pizzeria.Host", "Pizzeria"); } }
+            public static string PizzaBaker { get { return GetString("PizzaBaker.Host", "PizzaBaker"); } }
         }
 
         public static class Ports

@@ -8,89 +8,68 @@ using Thrift;
 using System.Threading;
 using Pizzeria;
 using CommonServiceTools;
+using ThriftClients;
 
 namespace PizzaBaker.ServiceImpl
 {
-    class Handler : PizzaBaker.ISync
+    class Handler 
     {
-        private static TException RepackageException(Exception e)
-        {
-            if (e is TException)
-                return e as TException;
-
-            var msg = new List<string>();
-            while (e != null)
-            {
-                msg.Add(e.Message);
-                e = e.InnerException;
-            }
-
-            return new EPizzaBaker() { Msg = string.Join("\n", msg) };
-        }
-
-
         static object ServerLock = new object();
         static string InstanceID = Guid.NewGuid().ToString();
-        static Task CurrentTask;
 
-        public bool PrepareMeal(string OrderID, string DishID, int Quantity)
+        internal bool MakeOnePizza(PizzeriaCallbackClient client)
         {
             try
             {
-                lock (ServerLock)
-                {
-                    if ((CurrentTask != null) && (!CurrentTask.IsCompleted))
-                        return false;
+                var work = client.Impl.GetSomeWork(GetID());
+                if ((string.IsNullOrEmpty(work.OrderID)) || (work.OrderPosition == null))
+                    return false;
 
-                    Console.WriteLine("Baking {0} {1} for {2}", Quantity, DishID, OrderID);
+                PrepareMeal(work);
 
-                    CurrentTask = new Task(() => {
-                        Thread.Sleep(Quantity * 500);
-                        NotifyMealPrepared(OrderID, DishID, Quantity);
-                    });
+                client.Impl.MealPrepared(
+                        work.OrderID,
+                        work.OrderPosition.DishID,
+                        work.OrderPosition.Quantity,
+                        InstanceID);
 
-                    CurrentTask.Start();
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                throw RepackageException(e);
-            }
-        }
-
-        private void NotifyMealPrepared(string orderID, string dishID, int quantity)
-        {
-            try
-            {
-                using (var client = new ThriftClients.PizzeriaCallbackClient(PizzaConfig.Hosts.Pizzeria, PizzaConfig.Ports.Pizzeria))
-                {
-                    client.Impl.MealPrepared(orderID, dishID, quantity, InstanceID);
-                }
+                return true;
             }
             catch (EPizzeria ce)
             {
                 Console.WriteLine(ce.Message);
                 Console.WriteLine(ce.Msg);
                 //Console.WriteLine(ce.StackTrace);
+                return false;
             }
             catch (Exception e)
             {
                 Console.WriteLine("{0} {1}", e.GetType().Name, e.Message);
                 //Console.WriteLine(e.StackTrace);
+                return false;
+            }
+        }
+
+        private bool PrepareMeal(WorkItem work)
+        {
+            lock (ServerLock)
+            {
+                Console.Write("Baking {0} {1} for {2} ... ", 
+                    work.OrderPosition.Quantity,
+                    work.OrderPosition.DishID,
+                    work.OrderID);
+
+                // do some hard work
+                Thread.Sleep(work.OrderPosition.Quantity * 500);
+
+                Console.WriteLine("done.");
+                return true;
             }
         }
 
         public string GetID()
         {
-            try
-            {
-                return InstanceID;
-            }
-            catch (Exception e)
-            {
-                throw RepackageException(e);
-            }
+            return InstanceID;
         }
     }
 

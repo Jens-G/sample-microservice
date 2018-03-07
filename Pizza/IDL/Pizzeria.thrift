@@ -17,6 +17,11 @@ struct Order {
 	2: list<OrderPosition>	Positions
 }
 
+// contains no data if there is no work
+struct WorkItem {
+	1: optional string  		OrderID  
+	2: optional OrderPosition	OrderPosition
+}
 
 exception EPizzeria {
 	1: string Msg
@@ -31,6 +36,7 @@ service Pizzeria {
 
 
 service PizzeriaCallback {
+	WorkItem GetSomeWork( 1: string BakerID) throws (1: EPizzeria error)
 	void MealPrepared( 1: string OrderID, 2: string DishID, 3: i32 Quantity, 4: string BakerID) throws (1: EPizzeria error)
 }
 

@@ -10,13 +10,13 @@ using CommonServiceTools;
 
 namespace Pizzeria.ServiceImpl
 {
-    class Handler : WorkerBase, Pizzeria.ISync, PizzeriaCallback.ISync
+    class Handler : WorkerBase, Pizzeria.ISync, PizzeriaCallback.ISync, Diagnostics.Diagnostics.ISync
     {
-
         public List<Dish> GetTheMenue()
         {
             try
             {
+                Console.WriteLine("GetTheMenue() ...");
                 return new List<Dish>() {
                     new Dish()
                     {
@@ -63,22 +63,20 @@ namespace Pizzeria.ServiceImpl
         {
             try
             {
-                var session = Connect();
-
                 var sID = Guid.NewGuid().ToString();
 
                 foreach (var entry in order.Positions)
                 {
                     var sCmd = "INSERT INTO pizzeria.PendingOrders (OrderID, DishID, Quantity, Status)"
-                             + " VALUES ("
-                             + CassandraTools.EscapeValue(sID) + ","
-                             + CassandraTools.EscapeValue(entry.DishID) + ","
-                             + CassandraTools.EscapeValue(entry.Quantity) + ","
-                             + CassandraTools.EscapeValue(0) + ");"
-                             ;
+                                + " VALUES ("
+                                + CassandraTools.EscapeValue(sID) + ","
+                                + CassandraTools.EscapeValue(entry.DishID) + ","
+                                + CassandraTools.EscapeValue(entry.Quantity) + ","
+                                + CassandraTools.EscapeValue(0) + ");"
+                                ;
 
                     Console.WriteLine(sCmd);
-                    session.Execute(sCmd);
+                    using (Session.Execute(sCmd)) { /* nix */ }
 
                 }
 
@@ -91,30 +89,101 @@ namespace Pizzeria.ServiceImpl
         }
 
 
+        public WorkItem GetSomeWork(string BakerID)
+        {
+            try
+            {
+                var sCmd = "SELECT OrderID, DishID, Quantity, Status FROM pizzeria.PendingOrders"
+                        + " WHERE Status = " + CassandraTools.EscapeValue(0)
+                        + " ALLOW FILTERING;"
+                        ;
+
+                Console.WriteLine(sCmd);
+                using (var rows = Session.Execute(sCmd))
+                {
+                    foreach (var row in rows)
+                    {
+                        var orderID = (string)row[0];
+                        var dishID = (string)row[1];
+                        var quantity = (int)row[2];
+
+                        var work = new WorkItem()
+                        {
+                            OrderID = orderID,
+                            OrderPosition = new OrderPosition()
+                            {
+                                DishID = dishID,
+                                Quantity = quantity
+                            }
+                        };
+
+                        sCmd = "UPDATE pizzeria.PendingOrders"
+                                + " USING TTL 60"  // seconds baker timeout
+                                + " SET BakerID = " + CassandraTools.EscapeValue(BakerID)
+                                + " WHERE (OrderID = " + CassandraTools.EscapeValue(orderID) + ")"
+                                + " AND (DishID = " + CassandraTools.EscapeValue(dishID) + ")"
+                                + " IF BakerID = NULL"
+                                + ";";
+                        Console.WriteLine(sCmd);
+                        using (var rowset = Session.Execute(sCmd))
+                        {
+                            var applied = (bool)rowset.First().First();  // first row, first col
+                            Console.WriteLine("applied = {0}", applied);
+                            if (applied)  // check if someone else was faster
+                                return work; // no, we got that row
+                        }
+                    }
+                }
+
+                return new WorkItem();  // no null return, empty item instead
+            }
+            catch (Exception e)
+            {
+                throw RepackageException(e);
+            }
+
+        }
+
+
         public void MealPrepared(string OrderID, string DishID, int Quantity, string BakerID)
         {
-            MaitreDeCuisine.MealPrepared(OrderID, DishID, Quantity, BakerID);
+            try
+            {
+                var sCmd = "UPDATE pizzeria.PendingOrders USING TTL 0"
+                        + " SET Status = 1, BakerID = " + CassandraTools.EscapeValue(BakerID)  // set bakerID again to override active TTL
+                        + " WHERE (OrderID = " + CassandraTools.EscapeValue(OrderID) + ")"
+                        + " AND (DishID = " + CassandraTools.EscapeValue(DishID) + ")"
+                        + " IF Status = " + CassandraTools.EscapeValue(0)
+                        + ";";
+                Console.WriteLine(sCmd);
+                using (Session.Execute(sCmd)) { /* nix */ }
+            }
+            catch (Exception e)
+            {
+                throw RepackageException(e);
+            }
         }
+
 
         public bool CheckAndDeliver(string orderID)
         {
             try
             {
-                var session = Connect();
-
                 // check order status of all dishes
                 var count = 0;
                 var sCmd = "SELECT Status FROM pizzeria.PendingOrders"
-                         + " WHERE (OrderID = " + CassandraTools.EscapeValue(orderID) + ")"
-                         + ";";
+                            + " WHERE (OrderID = " + CassandraTools.EscapeValue(orderID) + ")"
+                            + ";";
                 Console.WriteLine(sCmd);
-                var rows = session.Execute(sCmd);
-                foreach (var row in rows)
+                using (var rows = Session.Execute(sCmd))
                 {
-                    var status = (int)row[0];
-                    if (status == 0)
-                        return false;  // still not complete
-                    ++count;
+                    foreach (var row in rows)
+                    {
+                        var status = (int)row[0];
+                        if (status == 0)
+                            return false;  // still not complete
+                        ++count;
+                    }
                 }
 
 
@@ -124,10 +193,10 @@ namespace Pizzeria.ServiceImpl
 
                 // delivered, done, remove order
                 sCmd = "DELETE FROM pizzeria.PendingOrders"
-                     + " WHERE (OrderID = " + CassandraTools.EscapeValue(orderID) + ")"
-                     + ";";
+                        + " WHERE (OrderID = " + CassandraTools.EscapeValue(orderID) + ")"
+                        + ";";
                 Console.WriteLine(sCmd);
-                session.Execute(sCmd);
+                using (Session.Execute(sCmd)) { /* nix */ }
 
                 return true;
             }
@@ -137,6 +206,39 @@ namespace Pizzeria.ServiceImpl
             }
         }
 
+        public double PerformanceTest(int seconds)
+        {
+            try
+            {
+                double pi = 4;
+                double diff = 1;
+                double x = 3;
+                bool plus = false;
+
+                long iterations = 0;
+                var timeout = DateTime.Now + TimeSpan.FromSeconds(seconds);
+                while ((diff > 1e-300) && (timeout > DateTime.Now))
+                {
+                    diff = (4.0 / x);
+
+                    if (plus)
+                        pi += diff;
+                    else
+                        pi -= diff;
+
+                    x += 2;
+                    plus = (!plus);
+                    ++iterations;
+                }
+
+                Console.WriteLine("pi = {0}, diff = {1}, iterations = {2}", pi, diff, iterations);
+                return iterations;
+            }
+            catch (Exception e)
+            {
+                throw new Diagnostics.EDiagnostics() { Msg = e.Message };
+            }
+        }
     }
 
 }

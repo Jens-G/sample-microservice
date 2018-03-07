@@ -1,0 +1,37 @@
+version: "2.2"
+    
+services:
+    cassandra:
+        image: cassandra
+        networks:
+            - connection
+        volumes:
+            - cassandra:/var/lib/cassandra 
+        
+    pizzeria:
+        image: pizzeria:v2
+        build: 
+            context: Pizzeria/
+        networks:
+            - connection
+        ports:
+            - "9090:9090"  # check IP with "docker inspect pizza_connection"
+        depends_on:
+            - cassandra
+        cpus: 0.4
+            
+    pizzabaker:
+        image: pizzabaker:v2
+        build: 
+            context: PizzaBaker/
+        networks:
+            - connection
+        depends_on:
+            - pizzeria
+
+networks:
+    connection:
+        driver: "overlay"
+
+volumes:
+    cassandra:

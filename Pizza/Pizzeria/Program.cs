@@ -14,16 +14,8 @@ namespace Pizzeria
         {
             var port = args.Length > 0 ? int.Parse(args[0]) : PizzaConfig.Ports.Pizzeria;
 
-            var maitre = new Task(() => {
-                MaitreDeCuisine.Run();
-            });
-            maitre.Start();
-
             Console.WriteLine("Up and running on port {0}.", port);
             Server.Run(port);
-
-            MaitreDeCuisine.Stop();
-            maitre.Wait();
         }
     }
 }
