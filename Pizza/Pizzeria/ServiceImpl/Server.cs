@@ -1,7 +1,9 @@
-﻿using System;
+﻿using CommonServiceTools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Thrift.Protocol;
 using Thrift.Server;
@@ -18,7 +20,7 @@ namespace Pizzeria.ServiceImpl
             serverTransport.Listen();
             serverTransport.Close();
             serverTransport = new TServerSocket(port);
-            
+
             // one processor to rule them all
             var multiplexProcessor = new TMultiplexedProcessor();
 
@@ -46,11 +48,23 @@ namespace Pizzeria.ServiceImpl
             // complete internal setup
             Console.Title = Environment.MachineName + "-" + port.ToString();
 
-            // return the server instance
-            //var server = new TThreadPoolServer(multiplexProcessor, serverTransport, transportFactory, protocolFactory);
-            var server = new TThreadedServer(multiplexProcessor, serverTransport, transportFactory, protocolFactory);
-            //var server = new TSimpleServer(multiplexProcessor, serverTransport, transportFactory, protocolFactory);
-            server.Serve();
+            ReadinessHttpServer.Start(9080);
+            try
+            {
+                // return the server instance
+                //var server = new TThreadPoolServer(multiplexProcessor, serverTransport, transportFactory, protocolFactory);
+                var server = new TThreadedServer(multiplexProcessor, serverTransport, transportFactory, protocolFactory);
+                //var server = new TSimpleServer(multiplexProcessor, serverTransport, transportFactory, protocolFactory);
+
+                ReadinessHttpServer.Status = Readiness.AliveAndReady;
+                server.Serve();
+            }
+            finally
+            {
+                ReadinessHttpServer.Stop();
+            }
         }
     }
+
+
 }

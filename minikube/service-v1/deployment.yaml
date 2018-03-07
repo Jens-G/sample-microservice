@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pizza
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pizzeria
+        deployment: v1
+    spec:
+      containers:
+        - name: pizzeria
+          image: pizzeria:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 9090
+              hostPort: 9090
+        - name: pizzabaker
+          image: pizzabaker:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 9091
+        - name: cassandra
+          image: cassandra
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 7000
+              name: intra-node
+            - containerPort: 7001
+              name: tls-intra-node
+            - containerPort: 7199
+              name: jmx
+            - containerPort: 9042
+              name: cql
+          resources:
+            limits:
+              cpu: "500m"
+              memory: 1Gi
+            requests:
+              cpu: "500m"
+              memory: 1Gi
+      
+        

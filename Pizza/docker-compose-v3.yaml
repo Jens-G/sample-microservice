@@ -9,7 +9,7 @@ services:
             - cassandra:/var/lib/cassandra 
         
     pizzeria:
-        image: pizzeria:v4
+        image: pizzeria:v3
         build: 
             context: Pizzeria/
         networks:
@@ -21,7 +21,7 @@ services:
         cpus: 0.4
             
     pizzabaker:
-        image: pizzabaker:v4
+        image: pizzabaker:v3
         build: 
             context: PizzaBaker/
         networks:

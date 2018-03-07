@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pizzabaker
+  labels:
+    app: pizza-sample
+spec:
+  ports:
+  - port: 9091
+    targetPort: 9091
+  selector:
+    app: pizzabaker
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pizzabaker
+  labels:
+    app: pizzabaker
+    deployment: v3
+spec:
+  replicas: 4   # we need more workers 
+  template:
+    metadata:
+      name: pizzabaker
+      labels:
+        app: pizzabaker
+    spec:
+      nodeSelector:
+        environment: staging
+      containers:
+        - name: pizzabaker
+          image: pizzabaker:v3
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 9091
+#         command: ['/bin/bash']
+#         args: ['-c', 'while true; do echo "waiting ..."; sleep 10;done']
+

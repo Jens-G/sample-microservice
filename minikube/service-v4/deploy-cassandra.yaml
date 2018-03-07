@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cassandra
+  labels:
+    app: pizza-sample
+spec:
+  ports:
+  - port: 9042
+    targetPort: 9042
+  selector:
+    app: cassandra
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: cassandra
+  labels:
+    app: cassandra
+    deployment: v3
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: cassandra
+      labels:
+        app: cassandra
+    spec:
+      nodeSelector:
+        environment: staging
+      containers:
+        - name: cassandra
+          image: cassandra
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 7000
+              name: intra-node
+            - containerPort: 7001
+              name: tls-intra-node
+            - containerPort: 7199
+              name: jmx
+            - containerPort: 9042
+              name: cql
+          resources:
+            limits:
+              cpu: "500m"
+              memory: 1Gi
+            requests:
+              cpu: "500m"
+              memory: 1Gi
+      
+        

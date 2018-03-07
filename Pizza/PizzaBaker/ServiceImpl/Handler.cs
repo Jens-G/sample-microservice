@@ -21,10 +21,12 @@ namespace PizzaBaker.ServiceImpl
         {
             try
             {
+                ReadinessHttpServer.Status = Readiness.AliveAndReady;
                 var work = client.Impl.GetSomeWork(GetID());
                 if ((string.IsNullOrEmpty(work.OrderID)) || (work.OrderPosition == null))
                     return false;
 
+                ReadinessHttpServer.Status = Readiness.AliveButBusy;
                 PrepareMeal(work);
 
                 client.Impl.MealPrepared(

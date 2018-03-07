@@ -98,7 +98,7 @@ namespace Pizzeria.ServiceImpl
                         + " ALLOW FILTERING;"
                         ;
 
-                Console.WriteLine(sCmd);
+                //Console.WriteLine(sCmd);  -- don't pollute the output with useless information
                 using (var rows = Session.Execute(sCmd))
                 {
                     foreach (var row in rows)
@@ -174,7 +174,7 @@ namespace Pizzeria.ServiceImpl
                 var sCmd = "SELECT Status FROM pizzeria.PendingOrders"
                             + " WHERE (OrderID = " + CassandraTools.EscapeValue(orderID) + ")"
                             + ";";
-                Console.WriteLine(sCmd);
+                //Console.WriteLine(sCmd);  -- don't pollute the output with useless information
                 using (var rows = Session.Execute(sCmd))
                 {
                     foreach (var row in rows)

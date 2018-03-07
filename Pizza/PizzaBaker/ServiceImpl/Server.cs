@@ -21,6 +21,7 @@ namespace PizzaBaker.ServiceImpl
         {
             Console.Title = Environment.MachineName + "-" + handler.GetID();
 
+            ReadinessHttpServer.Start(9080);
             while (true)
             {
                 try
@@ -28,6 +29,7 @@ namespace PizzaBaker.ServiceImpl
                     Thread.Sleep(100);
                     using (var client = new ThriftClients.PizzeriaCallbackClient(PizzaConfig.Hosts.Pizzeria, PizzaConfig.Ports.Pizzeria))
                     {
+                        ReadinessHttpServer.Status = Readiness.AliveAndReady;
                         while (handler.MakeOnePizza(client))
                             /* one more! */;
                     }

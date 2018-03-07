@@ -55,6 +55,7 @@
     </Compile>
     <Compile Include="CassandraTools.cs" />
     <Compile Include="PizzaConfig.cs" />
+    <Compile Include="ReadinessHttpServer.cs" />
     <Compile Include="ThriftClients\BaseClient.cs" />
     <Compile Include="ThriftClients\PizzeriaCallbackClient.cs" />
     <Compile Include="ThriftClients\DiagnosticsClient.cs" />

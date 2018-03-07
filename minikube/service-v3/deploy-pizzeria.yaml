@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pizzeria
+  labels:
+    app: pizza-sample
+spec:
+  ports:
+  - port: 9090
+    targetPort: 9090
+  selector:
+    app: pizzeria
+  type: NodePort # or LoadBalancer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pizzeria
+  labels:
+    app: pizzeria
+    deployment: v3
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: pizzeria
+      labels:
+        app: pizzeria
+    spec:
+      nodeSelector:
+        environment: staging
+      containers:
+        - name: pizzeria
+          image: pizzeria:v3
+          imagePullPolicy: Never
+          ports: 
+            - containerPort: 9090
+              hostPort: 9090
+#         command: ['/bin/bash']
+#         args: ['-c', 'while true; do echo "waiting ..."; sleep 10;done']
+
