@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pizzabaker
+  labels:
+    app: pizza-sample
+spec:
+  ports:
+  - port: 9091
+    targetPort: 9091
+  selector:
+    app: pizzabaker
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pizzabaker
+  labels:
+    app: pizzabaker
+    deployment: v5
+spec:
+  replicas: 1   # we need more workers 
+  template:
+    metadata:
+      name: pizzabaker
+      labels:
+        app: pizzabaker
+    spec:
+      containers:
+        - name: pizzabaker
+          image: jensg/pizzabaker:v5-windows
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9091
+          env:
+            - name: PIZZABAKER_READINESS_PORT
+              value: "9081"
+            - name: DATABASE_TYPE
+              value: SQLServer
+
+

@@ -1,7 +1,6 @@
 ﻿using Pizzeria;
 using System;
 using System.Collections.Generic;
-using Cassandra;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +11,12 @@ namespace Pizzeria.ServiceImpl
 {
     class Handler : WorkerBase, Pizzeria.ISync, PizzeriaCallback.ISync, Diagnostics.Diagnostics.ISync
     {
+        public Handler() : base()
+        {
+            Console.WriteLine("DBType = {0}", PizzaConfig.DBType);
+        }
+
+
         public List<Dish> GetTheMenue()
         {
             try
@@ -54,7 +59,7 @@ namespace Pizzeria.ServiceImpl
             }
             catch (Exception e)
             {
-                throw RepackageException(e);
+                throw Tools.RepackageException(e);
             }
         }
 
@@ -63,28 +68,12 @@ namespace Pizzeria.ServiceImpl
         {
             try
             {
-                var sID = Guid.NewGuid().ToString();
-
-                foreach (var entry in order.Positions)
-                {
-                    var sCmd = "INSERT INTO pizzeria.PendingOrders (OrderID, DishID, Quantity, Status)"
-                                + " VALUES ("
-                                + CassandraTools.EscapeValue(sID) + ","
-                                + CassandraTools.EscapeValue(entry.DishID) + ","
-                                + CassandraTools.EscapeValue(entry.Quantity) + ","
-                                + CassandraTools.EscapeValue(0) + ");"
-                                ;
-
-                    Console.WriteLine(sCmd);
-                    using (Session.Execute(sCmd)) { /* nix */ }
-
-                }
-
-                return sID;
+                Console.WriteLine("PlaceOrder() ...");
+                return Session.PlaceOrder(order);
             }
             catch (Exception e)
             {
-                throw RepackageException(e);
+                throw Tools.RepackageException(e);
             }
         }
 
@@ -93,55 +82,13 @@ namespace Pizzeria.ServiceImpl
         {
             try
             {
-                var sCmd = "SELECT OrderID, DishID, Quantity, Status FROM pizzeria.PendingOrders"
-                        + " WHERE Status = " + CassandraTools.EscapeValue(0)
-                        + " ALLOW FILTERING;"
-                        ;
-
-                //Console.WriteLine(sCmd);  -- don't pollute the output with useless information
-                using (var rows = Session.Execute(sCmd))
-                {
-                    foreach (var row in rows)
-                    {
-                        var orderID = (string)row[0];
-                        var dishID = (string)row[1];
-                        var quantity = (int)row[2];
-
-                        var work = new WorkItem()
-                        {
-                            OrderID = orderID,
-                            OrderPosition = new OrderPosition()
-                            {
-                                DishID = dishID,
-                                Quantity = quantity
-                            }
-                        };
-
-                        sCmd = "UPDATE pizzeria.PendingOrders"
-                                + " USING TTL 60"  // seconds baker timeout
-                                + " SET BakerID = " + CassandraTools.EscapeValue(BakerID)
-                                + " WHERE (OrderID = " + CassandraTools.EscapeValue(orderID) + ")"
-                                + " AND (DishID = " + CassandraTools.EscapeValue(dishID) + ")"
-                                + " IF BakerID = NULL"
-                                + ";";
-                        Console.WriteLine(sCmd);
-                        using (var rowset = Session.Execute(sCmd))
-                        {
-                            var applied = (bool)rowset.First().First();  // first row, first col
-                            Console.WriteLine("applied = {0}", applied);
-                            if (applied)  // check if someone else was faster
-                                return work; // no, we got that row
-                        }
-                    }
-                }
-
-                return new WorkItem();  // no null return, empty item instead
+                Console.WriteLine("GetSomeWork() ...");
+                return Session.GetSomeWork(BakerID);
             }
             catch (Exception e)
             {
-                throw RepackageException(e);
+                throw Tools.RepackageException(e);
             }
-
         }
 
 
@@ -149,18 +96,12 @@ namespace Pizzeria.ServiceImpl
         {
             try
             {
-                var sCmd = "UPDATE pizzeria.PendingOrders USING TTL 0"
-                        + " SET Status = 1, BakerID = " + CassandraTools.EscapeValue(BakerID)  // set bakerID again to override active TTL
-                        + " WHERE (OrderID = " + CassandraTools.EscapeValue(OrderID) + ")"
-                        + " AND (DishID = " + CassandraTools.EscapeValue(DishID) + ")"
-                        + " IF Status = " + CassandraTools.EscapeValue(0)
-                        + ";";
-                Console.WriteLine(sCmd);
-                using (Session.Execute(sCmd)) { /* nix */ }
+                Console.WriteLine("MealPrepared() ...");
+                Session.MealPrepared(OrderID, DishID, Quantity, BakerID);
             }
             catch (Exception e)
             {
-                throw RepackageException(e);
+                throw Tools.RepackageException(e);
             }
         }
 
@@ -169,44 +110,17 @@ namespace Pizzeria.ServiceImpl
         {
             try
             {
-                // check order status of all dishes
-                var count = 0;
-                var sCmd = "SELECT Status FROM pizzeria.PendingOrders"
-                            + " WHERE (OrderID = " + CassandraTools.EscapeValue(orderID) + ")"
-                            + ";";
-                //Console.WriteLine(sCmd);  -- don't pollute the output with useless information
-                using (var rows = Session.Execute(sCmd))
-                {
-                    foreach (var row in rows)
-                    {
-                        var status = (int)row[0];
-                        if (status == 0)
-                            return false;  // still not complete
-                        ++count;
-                    }
-                }
-
-
-                // any records at all?
-                if (count == 0)
-                    throw new EPizzeria() { Msg = string.Format("Invalid orderID {0}", orderID) };
-
-                // delivered, done, remove order
-                sCmd = "DELETE FROM pizzeria.PendingOrders"
-                        + " WHERE (OrderID = " + CassandraTools.EscapeValue(orderID) + ")"
-                        + ";";
-                Console.WriteLine(sCmd);
-                using (Session.Execute(sCmd)) { /* nix */ }
-
-                return true;
+                Console.WriteLine("CheckAndDeliver() ...");
+                return Session.CheckAndDeliver(orderID);
             }
             catch (Exception e)
             {
-                throw RepackageException(e);
+                throw Tools.RepackageException(e);
             }
         }
 
-        public double PerformanceTest(int seconds)
+
+        public long PerformanceTest(int seconds)
         {
             try
             {

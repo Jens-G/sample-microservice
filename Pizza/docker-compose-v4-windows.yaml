@@ -1,0 +1,35 @@
+version: "2.2"
+    
+services:
+    sqlserver:
+        image: microsoft/mssql-server-windows-express:2017-GA
+        networks:
+            - connection
+        
+    pizzeria:
+        image: pizzeria:v5-windows
+        build: 
+            context: Pizzeria/
+            dockerfile: Dockerfile.windows
+        networks:
+            - connection
+        ports:
+            - "80:80"  # check IP with "docker inspect pizza_connection"
+        depends_on:
+            - sqlserver
+        cpus: 0.4
+            
+    pizzabaker:
+        image: pizzabaker:v5-windows
+        build: 
+            context: PizzaBaker/
+            dockerfile: Dockerfile.windows
+        networks:
+            - connection
+        depends_on:
+            - pizzeria
+
+networks:
+    connection:
+        driver: "overlay"
+

@@ -21,7 +21,7 @@ namespace PizzaBaker.ServiceImpl
         {
             Console.Title = Environment.MachineName + "-" + handler.GetID();
 
-            ReadinessHttpServer.Start(9080);
+            ReadinessHttpServer.Start(PizzaConfig.ReadinessPorts.PizzaBaker);
             while (true)
             {
                 try

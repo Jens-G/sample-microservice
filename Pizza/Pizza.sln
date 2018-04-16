@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PizzaBaker", "PizzaBaker\Pi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonServiceTools", "CommonServiceTools\CommonServiceTools.csproj", "{388CA819-1400-4755-B039-314F446C3000}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DB.Cassandra", "DB.Cassandra\DB.Cassandra.csproj", "{C164FD2D-D62A-49FF-9791-31A1E39F2977}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DB.SQLServer", "DB.SQLServer\DB.SQLServer.csproj", "{CC36616A-D808-4912-AA22-918190F4CC75}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{388CA819-1400-4755-B039-314F446C3000}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{388CA819-1400-4755-B039-314F446C3000}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{388CA819-1400-4755-B039-314F446C3000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C164FD2D-D62A-49FF-9791-31A1E39F2977}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C164FD2D-D62A-49FF-9791-31A1E39F2977}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C164FD2D-D62A-49FF-9791-31A1E39F2977}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C164FD2D-D62A-49FF-9791-31A1E39F2977}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC36616A-D808-4912-AA22-918190F4CC75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC36616A-D808-4912-AA22-918190F4CC75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC36616A-D808-4912-AA22-918190F4CC75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC36616A-D808-4912-AA22-918190F4CC75}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

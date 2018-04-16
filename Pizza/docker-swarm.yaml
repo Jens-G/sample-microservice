@@ -13,13 +13,13 @@ services:
                     - node.labels.pizza == frontend
         
     pizzeria:
-        image: pizzeria:v2
+        image: pizzeria:v4-linux
         build: 
             context: Pizzeria/
         networks:
             - connection
         ports:
-            - "9090:9090"  # check IP with "docker inspect pizza_connection"
+            - "80:80"  # check IP with "docker inspect pizza_connection"
         depends_on:
             - cassandra
         deploy:
@@ -34,7 +34,7 @@ services:
                     - node.labels.pizza == frontend
             
     pizzabaker:
-        image: pizzabaker:v2
+        image: pizzabaker:v4-linux
         build: 
             context: PizzaBaker/
         networks:
@@ -43,7 +43,7 @@ services:
             - pizzeria
         deploy:
             mode: replicated
-            replicas: 30
+            replicas: 10
             placement:
                 constraints: 
                     - node.labels.pizza == backend

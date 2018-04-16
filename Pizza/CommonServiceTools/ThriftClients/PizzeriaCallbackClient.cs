@@ -14,7 +14,7 @@ namespace ThriftClients
         public PizzeriaCallbackClient(string server, int port)
             : base(server, port)
         {
-            Impl = ConnectClient();
+            Impl = ConnectClient(true/*silent*/);
         }
 
         protected override void Dispose(bool disposing)

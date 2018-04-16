@@ -17,7 +17,7 @@ metadata:
   name: cassandra
   labels:
     app: cassandra
-    deployment: v3
+    deployment: v4a
 spec:
   replicas: 1
   template:
@@ -30,8 +30,8 @@ spec:
         environment: staging
       containers:
         - name: cassandra
-          image: cassandra
-          imagePullPolicy: Never
+          image: cassandra:3
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 7000
               name: intra-node

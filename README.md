@@ -35,8 +35,8 @@ The repo has branches, one belonging to each part of the article series. The bra
  * Part 1 deals with Docker basics
  * Part 2 introduces Docker Compose and puts the Docker Swarm Mode to use
  * Part 3 moves the service into a (local) Minikube cluster and explores Kubernetes
- * Part 4 ... soon :-)
-
+ * Part 4 brings the service into the cloud (Azure and GKE) and/or runs it in a local cluster
+ 
  
 Version 1 - the initial "Teil 1" branch
 -------------------
@@ -46,7 +46,9 @@ Introduces the sample code and comes with some example Dockerfiles included.
 Changes in version 2 (the "Teil 2" branch)
 -------------------
 The internal interface on port 9091 has been removed and control flow has been reverted. The frontend is still controlling 
-the backends. But the work items are now actively requested by the backends, instead of getting them pushed from the frontend to the backends. That latter method just did not scale, because the frontend does not know how many PizzaBakers are actually up and running, and whether they are currently idle or not.
+the backends. But the work items are now actively requested by the backends, instead of getting them pushed from the frontend 
+to the backends. That latter method just did not scale, because the frontend does not know how many PizzaBakers are actually 
+up and running, and whether they are currently idle or not.
 
 
 Changes in version 3 (the "Teil 3" branch)
@@ -54,4 +56,12 @@ Changes in version 3 (the "Teil 3" branch)
 Added a "minikube" folder with four versions of the YAML files discussed in the article. Additionally, the services get readiness and liveness capabilities.
 
 
+Changes in version 4 (the "Teil 4" branch)
+-------------------
+Swiched to HTTP port 80 (although we don't use HTTP). 
+SQL Server has been added as alternative backend, because there is no Cassandra image for Windows containers. 
+Better configuration due to automatic peer service discovery.
+And lots of small changes, more YAML files, ...
+
+Have fun!
 

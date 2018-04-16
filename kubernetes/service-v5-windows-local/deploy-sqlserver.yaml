@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sqlserver
+  labels:
+    app: pizza-sample
+spec:
+  ports:
+  - port: 1433
+    targetPort: 1433
+  selector:
+    app: sqlserver
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sqlserver
+  labels:
+    app: sqlserver
+    deployment: v5
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: sqlserver
+      labels:
+        app: sqlserver
+      annotation:
+        experimental.windows.kubernetes.io/isolation-type: hyperv
+    spec:
+      containers:
+        - name: sqlserver
+          image: microsoft/mssql-server-windows-express:2017-GA
+          imagePullPolicy: IfNotPresent
+          env:
+          - name: ACCEPT_EULA
+            value: "Y"
+          - name: sa_password
+            valueFrom:
+              secretKeyRef:
+                name: sqlserver
+                key: password
+          ports:
+            - containerPort: 1433
+              name: sql-server
+          resources:
+            limits:
+              cpu: "500m"
+              memory: 3Gi
+            requests:
+              cpu: "500m"
+              memory: 1Gi
+      
+        

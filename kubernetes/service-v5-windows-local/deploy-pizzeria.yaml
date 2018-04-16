@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pizzeria
+  labels:
+    app: pizza-sample
+spec:
+  ports:
+  - port: 80    # usually reachable w/o problems
+    targetPort: 9090
+  selector:
+    app: pizzeria
+  type: LoadBalancer  
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pizzeria
+  labels:
+    app: pizzeria
+    deployment: v5
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: pizzeria
+      labels:
+        app: pizzeria
+      annotation:
+        experimental.windows.kubernetes.io/isolation-type: hyperv
+    spec:
+      containers:
+        - name: pizzeria
+          image: jensg/pizzeria:v5-windows
+          imagePullPolicy: IfNotPresent
+          ports: 
+            - containerPort: 9090
+              hostPort: 9090
+          env:
+          - name: PIZZERIA_READINESS_PORT
+            value: "9080"
+          - name: DATABASE_TYPE
+            value: SQLServer
+          - name: sa_password
+            valueFrom:
+              secretKeyRef:
+                name: sqlserver
+                key: password
+          livenessProbe:
+            httpGet:
+              path: /alive
+              port: 9080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 9080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 5

@@ -8,6 +8,12 @@ using System.IO;
 
 namespace CommonServiceTools
 {
+    public enum DBType
+    {
+        Cassandra,
+        SQLServer
+    }
+
     public static class PizzaConfig
     {
         private static Configuration Config = null;
@@ -34,7 +40,7 @@ namespace CommonServiceTools
             }
         }
 
-        private static string GetString(string key, string defaultValue = default(string))
+        private static string GetConfigString(string key, string defaultValue = default(string))
         {
             OpenConfig();
 
@@ -44,29 +50,169 @@ namespace CommonServiceTools
                 return defaultValue;
         }
 
-        private static int GetInt(string key, int defaultValue = 0)
+        private static int GetConfigInt(string key, int defaultValue = 0)
         {
             int value;
-            if (int.TryParse(GetString(key), out value))
+            if (int.TryParse(GetConfigString(key), out value))
                 return value;
             else
                 return defaultValue;
         }
 
 
+        private static string GetEnvString(string key, string defaultValue)
+        {
+            try
+            {
+                var value = Environment.GetEnvironmentVariable(key);
+                return string.IsNullOrEmpty(value) ? defaultValue : value;
+            }
+            catch (Exception)
+            {
+                return defaultValue;
+            }
+        }
+
+
+        private static int GetEnvInt(string key, int defaultValue)
+        {
+            int value;
+            var sValue = GetEnvString(key, defaultValue.ToString());
+            return int.TryParse(sValue, out value) ? value : defaultValue;
+        }
+
         public static class Hosts
         {
-            public static string Cassandra { get { return GetString("Cassandra.Host", "Cassandra"); } }
-            public static string Pizzeria { get { return GetString("Pizzeria.Host", "Pizzeria"); } }
-            public static string PizzaBaker { get { return GetString("PizzaBaker.Host", "PizzaBaker"); } }
+            public static string Cassandra
+            {
+                get
+                {
+                    return GetEnvString("CASSANDRA_SERVICE_HOST",
+                        GetConfigString("Cassandra.Host",
+                                        "Cassandra"));
+                }
+            }
+
+            public static string SQLServer
+            {
+                get
+                {
+                    return GetEnvString("SQLSERVER_SERVICE_HOST",
+                        GetConfigString("SQLServer.Host",
+                                        "SQLServer"));
+                }
+            }
+
+            public static string Pizzeria
+            {
+                get
+                {
+                    return GetEnvString("PIZZERIA_SERVICE_HOST",
+                        GetConfigString("Pizzeria.Host",
+                                        "Pizzeria"));
+                }
+            }
+
+            public static string PizzaBaker
+            {
+                get
+                {
+                    return GetEnvString("PIZZABAKER_SERVICE_HOST",
+                        GetConfigString("PizzaBaker.Host",
+                                        "PizzaBaker"));
+                }
+            }
         }
 
         public static class Ports
         {
-            public static int Pizzeria { get { return GetInt("Pizzeria.Port", 9090); } }  
-            public static int PizzaBaker { get { return GetInt("PizzaBaker.Port", 9091); } } 
+            public static int Pizzeria
+            {
+                get
+                {
+                    return GetEnvInt("PIZZERIA_SERVICE_PORT", 
+                        GetConfigInt("Pizzeria.Port", 
+                                    9090));
+                }
+            }
+            public static int PizzaBaker
+            {
+                get
+                {
+                    return GetEnvInt("PIZZABAKER_SERVICE_PORT", 
+                        GetConfigInt("PizzaBaker.Port", 
+                                    9091));
+                }
+            }
         }
 
+        public static class ReadinessPorts
+        {
+            private const int DEFAULT_READINESS_PORT = 9080;
+
+            public static int Pizzeria
+            {
+                get
+                {
+                    return GetEnvInt("PIZZERIA_READINESS_PORT", 
+                        GetConfigInt("Pizzeria.ReadinessPort", 
+                                    DEFAULT_READINESS_PORT));
+                }
+            }
+            public static int PizzaBaker
+            {
+                get
+                {
+                    return GetEnvInt("PIZZABAKER_READINESS_PORT", 
+                        GetConfigInt("PizzaBaker.ReadinessPort", 
+                                    DEFAULT_READINESS_PORT));
+                }
+            }
+        }
+
+        public static DBType DBType
+        {
+            get
+            {
+                var sDB = GetEnvString("DATABASE_TYPE", 
+                        GetConfigString("Database",  
+                                        "Cassandra"));
+
+                if (string.Compare(sDB, "Cassandra", true) == 0)
+                    return DBType.Cassandra;
+                if (string.Compare(sDB, "SQLServer", true) == 0)
+                    return DBType.SQLServer;
+
+                return DBType.Cassandra;  // default
+            }
+        }
+
+
+        public static string DBUser
+        {
+            get
+            {
+                return "sa";
+            }
+        }
+
+
+        public static string DBPassword
+        {
+            get
+            {
+                try
+                {
+                    var sPwd = Environment.GetEnvironmentVariable("sa_password", EnvironmentVariableTarget.Process);
+                    return sPwd;
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("WN: missing DBPassword");
+                    return string.Empty;
+                }
+            }
+        }
 
     }
 }

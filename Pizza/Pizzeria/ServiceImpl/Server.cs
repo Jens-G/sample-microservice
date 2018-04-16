@@ -48,7 +48,7 @@ namespace Pizzeria.ServiceImpl
             // complete internal setup
             Console.Title = Environment.MachineName + "-" + port.ToString();
 
-            ReadinessHttpServer.Start(9080);
+            ReadinessHttpServer.Start(PizzaConfig.ReadinessPorts.Pizzeria);
             try
             {
                 // return the server instance

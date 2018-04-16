@@ -19,13 +19,13 @@ namespace Diagnostics
 {
   public partial class Diagnostics {
     public interface ISync {
-      double PerformanceTest(int seconds);
+      long PerformanceTest(int seconds);
     }
 
     public interface Iface : ISync {
       #if SILVERLIGHT
       IAsyncResult Begin_PerformanceTest(AsyncCallback callback, object state, int seconds);
-      double End_PerformanceTest(IAsyncResult asyncResult);
+      long End_PerformanceTest(IAsyncResult asyncResult);
       #endif
     }
 
@@ -92,7 +92,7 @@ namespace Diagnostics
         return send_PerformanceTest(callback, state, seconds);
       }
 
-      public double End_PerformanceTest(IAsyncResult asyncResult)
+      public long End_PerformanceTest(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
         return recv_PerformanceTest();
@@ -100,7 +100,7 @@ namespace Diagnostics
 
       #endif
 
-      public double PerformanceTest(int seconds)
+      public long PerformanceTest(int seconds)
       {
         #if !SILVERLIGHT
         send_PerformanceTest(seconds);
@@ -130,7 +130,7 @@ namespace Diagnostics
         #endif
       }
 
-      public double recv_PerformanceTest()
+      public long recv_PerformanceTest()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -354,10 +354,10 @@ namespace Diagnostics
     #endif
     public partial class PerformanceTest_result : TBase
     {
-      private double _success;
+      private long _success;
       private EDiagnostics _error;
 
-      public double Success
+      public long Success
       {
         get
         {
@@ -412,8 +412,8 @@ namespace Diagnostics
             switch (field.ID)
             {
               case 0:
-                if (field.Type == TType.Double) {
-                  Success = iprot.ReadDouble();
+                if (field.Type == TType.I64) {
+                  Success = iprot.ReadI64();
                 } else { 
                   TProtocolUtil.Skip(iprot, field.Type);
                 }
@@ -450,10 +450,10 @@ namespace Diagnostics
 
           if (this.__isset.success) {
             field.Name = "Success";
-            field.Type = TType.Double;
+            field.Type = TType.I64;
             field.ID = 0;
             oprot.WriteFieldBegin(field);
-            oprot.WriteDouble(Success);
+            oprot.WriteI64(Success);
             oprot.WriteFieldEnd();
           } else if (this.__isset.error) {
             if (Error != null) {

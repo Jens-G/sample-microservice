@@ -68,12 +68,12 @@ namespace ThriftClients
                 trans.Open();
                 return ClientFactory(mplex);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                //Console.WriteLineLine("Machine {0} port {1}: {2}", connection.Server, connection.Port, e.Message);
+                Console.WriteLine("Machine {0} port {1}: {2}", Server, Port, e.Message);
             }
 
-            throw new Exception("Can't reach a server");
+            throw new Exception( string.Format("{0}: Can't reach a server at {1}:{2} ... ", DateTime.UtcNow, Server, Port));
         }
 
     }

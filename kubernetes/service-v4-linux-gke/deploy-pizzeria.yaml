@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pizzeria
+  labels:
+    app: pizza-sample
+spec:
+  ports:
+  - port: 80    # usually reachable w/o problems
+    targetPort: 80
+  selector:
+    app: pizzeria
+  type: LoadBalancer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pizzeria
+  labels:
+    app: pizzeria
+    deployment: v4a
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: pizzeria
+      labels:
+        app: pizzeria
+    spec:
+      nodeSelector:
+        environment: staging
+      containers:
+        - name: pizzeria
+          image: jensg/pizzeria:v4-linux
+          imagePullPolicy: IfNotPresent   # "Always" is helpful for debugging, but produces traffic
+          ports: 
+            - containerPort: 80
+              hostPort: 80
+          env:
+            - name: PIZZERIA_READINESS_PORT
+              value: "9080"
+            - name: DATABASE_TYPE
+              value: Cassandra
+          livenessProbe:
+            httpGet:
+              path: /alive
+              port: 9080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 9080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 5

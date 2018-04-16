@@ -1,68 +1,45 @@
-﻿using Cassandra;
-using CommonServiceTools;
-using System;
+﻿using CommonServiceTools;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Thrift;
+using DB;
+using System.Diagnostics;
 
 namespace Pizzeria.ServiceImpl
 {
     class WorkerBase
     {
-        protected static ISession g_Session;
+        protected static IDbAdapter g_Adapter;
+        protected static IDbSession g_Session;
 
-        protected static ISession Session
+        protected static IDbSession Session
         {
             get
             {
                 if (g_Session != null)
                     return g_Session;
 
-                g_Session = CassandraTools.Connect(new List<string>() {
-                    PizzaConfig.Hosts.Cassandra
-                });
+                switch (PizzaConfig.DBType)
+                {
+                    case DBType.Cassandra:
+                        g_Adapter = new DB.Cassandra.CassandraAdapter();
+                        g_Session = g_Adapter.CreateSession();
+                        break;
 
-                EnsureKeyspaceAndTables(g_Session);
+                    case DBType.SQLServer:
+                        g_Adapter = new DB.SQLServer.SQLServerAdapter();
+                        g_Session = g_Adapter.CreateSession();
+                        break;
+
+                    default:
+                        Debug.Assert(false);
+                        break;
+                }
+
+
+                g_Session.EnsureKeyspaceAndTables();
                 return g_Session;
             }
         }
 
-        private static void EnsureKeyspaceAndTables(ISession session)
-        {
-            session.CreateKeyspaceIfNotExists("pizzeria"/*, replstrat*/);
-            try
-            {
-                var sCmd = "CREATE TABLE pizzeria.PendingOrders ("
-                         + " OrderID varchar, DishID varchar, Quantity int, Status int, BakerID varchar,"
-                         + " PRIMARY KEY (OrderID,DishID)"
-                         + ") WITH CLUSTERING ORDER BY (DishID ASC);"
-                         ;
-
-                session.Execute(sCmd);
-            }
-            catch (AlreadyExistsException)
-            {
-                // shit happens
-            }
-        }
-
-
-        protected static TException RepackageException(Exception e)
-        {
-            if (e is TException)
-                return e as TException;
-
-            var msg = new List<string>();
-            while (e != null)
-            {
-                msg.Add(e.Message);
-                e = e.InnerException;
-            }
-
-            return new EPizzeria() { Msg = string.Join("\n", msg) };
-        }
 
     }
 }

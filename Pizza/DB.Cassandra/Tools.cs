@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CommonServiceTools
+namespace DB.Cassandra
 {
-    public static class CassandraTools
+    public static class Tools
     {
         public static string EscapeValue(string value)
         {
@@ -15,6 +15,11 @@ namespace CommonServiceTools
         }
 
         public static string EscapeValue(int value)
+        {
+            return value.ToString();
+        }
+
+        public static string EscapeValue(long value)
         {
             return value.ToString();
         }

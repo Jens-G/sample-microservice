@@ -1,0 +1,5 @@
+FROM microsoft/windowsservercore:ltsc2016
+EXPOSE 9091
+WORKDIR /work
+COPY bin/Debug  .
+CMD ["/work/PizzaBaker.exe", ""]

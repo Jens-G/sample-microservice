@@ -33,21 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Cassandra">
-      <HintPath>..\..\..\..\..\..\JGIT_0x5ADC\5GL\5GL\lib\3rdparty\DataStax-Cassandra 3.2.0.0\Cassandra.dll</HintPath>
-    </Reference>
-    <Reference Include="LZ4">
-      <HintPath>..\..\..\..\..\..\JGIT_0x5ADC\5GL\5GL\lib\3rdparty\DataStax-Cassandra 3.2.0.0\LZ4.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
-      <HintPath>..\..\..\..\..\..\JGIT_0x5ADC\5GL\5GL\lib\3rdparty\Microsoft.Extensions\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Logging">
-      <HintPath>..\..\..\..\..\..\JGIT_0x5ADC\5GL\5GL\lib\3rdparty\Microsoft.Extensions\Microsoft.Extensions.Logging.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
-      <HintPath>..\..\..\..\..\..\JGIT_0x5ADC\5GL\5GL\lib\3rdparty\Microsoft.Extensions\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
@@ -80,6 +65,14 @@
     <ProjectReference Include="..\CommonServiceTools\CommonServiceTools.csproj">
       <Project>{388ca819-1400-4755-b039-314f446c3000}</Project>
       <Name>CommonServiceTools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DB.Cassandra\DB.Cassandra.csproj">
+      <Project>{c164fd2d-d62a-49ff-9791-31a1e39f2977}</Project>
+      <Name>DB.Cassandra</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DB.SQLServer\DB.SQLServer.csproj">
+      <Project>{cc36616a-d808-4912-aa22-918190f4cc75}</Project>
+      <Name>DB.SQLServer</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
